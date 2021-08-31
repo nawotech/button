@@ -1,0 +1,18 @@
+{
+    "name": "Button",
+    "version": "1.0.0",
+    "description": "Simple button Arduino library",
+    "keywords": "button, switch",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/nawotech/button.git"
+    },
+    "authors": [
+        {
+            "name": "Nawotech",
+            "maintainer": true
+        }
+    ],
+    "frameworks": "arduino",
+    "platforms": "*"
+}
