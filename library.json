@@ -13,6 +13,13 @@
             "maintainer": true
         }
     ],
+    "dependencies": [
+        {
+            "owner": "nawotech",
+            "name": "timer",
+            "version": "^1.0.0"
+        }
+    ],
     "frameworks": "arduino",
     "platforms": "*"
 }
