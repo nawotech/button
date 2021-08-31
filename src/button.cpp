@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include "Timer.h"
 #include "button.h"
 
 #define UPDATE_INTERVAL_MS 10
