@@ -9,7 +9,9 @@ enum button_state_t
     BUTTON_NONE,
     BUTTON_SHORT_PRESS,
     BUTTON_LONG_HOLD_START,
-    BUTTON_LONG_HOLD_END
+    BUTTON_LONG_HOLD_END,
+    BUTTON_DOUPLE_PRESS,
+    BUTTON_TRIPLE_PRESS
 };
 
 class Button
@@ -20,25 +22,25 @@ public:
     void update();
     button_state_t get_state();
     bool is_pressed();
+    Timer _Tmr;
 
 private:
     enum state_t
     {
         NOT_PRESSED,
-        WAITING_FOR_LONG_HOLD,
+        PRESS_START,
+        VALID_PRESS,
         SHORT_PRESS,
-        LONG_HOLD_START,
-        LONG_HOLD,
-        LONG_HOLD_END,
-        WAITING_FOR_RELEASE
+        LONG_PRESS_START,
+        LONG_PRESS_END
     };
 
     uint8_t _pin;
     bool _pol;
-    Timer _Tmr;
-    uint16_t _pressed_ms = 0;
-    uint16_t _not_pressed_ms = 0;
     state_t _state = NOT_PRESSED;
+    button_state_t _state_to_give = BUTTON_NONE;
+    bool _is_new_state = false;
+    uint8_t _press_count = 0;
 };
 
 #endif

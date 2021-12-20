@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include "button.h"
 
-#define UPDATE_INTERVAL_MS 10
+#define PRESSED_MIN_MS 30
 #define PRESSED_LONG_MIN_MS 1000
 #define NOT_PRESSED_MIN_MS 200
+#define BETWEEN_MULTI_PRESS_MAX_MS 900
 
 Button::Button(uint8_t pin, bool polarity_high)
 {
@@ -27,73 +28,100 @@ bool Button::is_pressed()
 
 void Button::update()
 {
-    if (_Tmr.time_passed(UPDATE_INTERVAL_MS))
+    bool pressed_now = is_pressed();
+
+    switch (_state)
     {
-        bool pressed_now = is_pressed();
-
-        if (pressed_now)
+    case NOT_PRESSED:
+        if (!_is_new_state)
         {
-            _pressed_ms = _pressed_ms + UPDATE_INTERVAL_MS;
-            _not_pressed_ms = 0;
-        }
-        else
-        {
-            _not_pressed_ms = _not_pressed_ms + UPDATE_INTERVAL_MS;
-            _pressed_ms = 0;
-        }
-
-        switch (_state)
-        {
-        case NOT_PRESSED:
             if (pressed_now)
             {
-                _state = WAITING_FOR_LONG_HOLD;
+                _press_count = 0;
+                _Tmr.reset();
+                _state = PRESS_START;
             }
-            break;
-
-        case WAITING_FOR_LONG_HOLD:
-            if (_pressed_ms >= PRESSED_LONG_MIN_MS)
-            {
-                _state = LONG_HOLD_START;
-            }
-            if (!pressed_now)
-            {
-                _state = SHORT_PRESS;
-            }
-            break;
-
-        case LONG_HOLD:
-            if (!pressed_now)
-            {
-                _state = LONG_HOLD_END;
-            }
-            break;
-
-        case WAITING_FOR_RELEASE:
-            if (_not_pressed_ms >= NOT_PRESSED_MIN_MS)
-            {
-                _state = NOT_PRESSED;
-            }
-            break;
         }
+        break;
+
+    case PRESS_START:
+        if (!pressed_now)
+        {
+            _state = NOT_PRESSED;
+        }
+        else if (_Tmr.get_ms() > PRESSED_MIN_MS)
+        {
+            _state = VALID_PRESS;
+        }
+        break;
+
+    case VALID_PRESS:
+        if (!pressed_now)
+        {
+            _press_count++;
+            _Tmr.reset();
+            _state = SHORT_PRESS;
+            if (_press_count == 1)
+            {
+                _state_to_give = BUTTON_SHORT_PRESS;
+            }
+            else if (_press_count == 2)
+            {
+                _state_to_give = BUTTON_DOUPLE_PRESS;
+            }
+            else if (_press_count == 3)
+            {
+                _state_to_give = BUTTON_TRIPLE_PRESS;
+            }
+            _is_new_state = true;
+        }
+        else if (_Tmr.get_ms() > PRESSED_LONG_MIN_MS)
+        {
+            _state = LONG_PRESS_START;
+            _state_to_give = BUTTON_LONG_HOLD_START;
+            _is_new_state = true;
+        }
+        break;
+
+    case SHORT_PRESS:
+        if (pressed_now)
+        {
+            _Tmr.reset();
+            _state = PRESS_START;
+        }
+        else if (_Tmr.get_ms() > BETWEEN_MULTI_PRESS_MAX_MS)
+        {
+            _state = NOT_PRESSED;
+        }
+        break;
+
+    case LONG_PRESS_START:
+        if (!pressed_now)
+        {
+            _Tmr.reset();
+            _state = LONG_PRESS_END;
+            _state_to_give = BUTTON_LONG_HOLD_END;
+            _is_new_state = true;
+        }
+        break;
+
+    case LONG_PRESS_END:
+        if (pressed_now)
+        {
+            _Tmr.reset();
+        }
+        else if (_Tmr.get_ms() > NOT_PRESSED_MIN_MS)
+        {
+            _state = NOT_PRESSED;
+        }
+        break;
     }
 }
 
 button_state_t Button::get_state()
 {
-    switch (_state)
-    {
-    case SHORT_PRESS:
-        _state = WAITING_FOR_RELEASE;
-        return BUTTON_SHORT_PRESS;
-
-    case LONG_HOLD_START:
-        _state = LONG_HOLD;
-        return BUTTON_LONG_HOLD_START;
-
-    case LONG_HOLD_END:
-        _state = WAITING_FOR_RELEASE;
-        return BUTTON_LONG_HOLD_END;
-    }
-    return BUTTON_NONE;
+    button_state_t state_ret = _state_to_give;
+    _state_to_give = BUTTON_NONE;
+    _is_new_state = false;
+    return state_ret;
 }
