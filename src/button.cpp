@@ -4,7 +4,7 @@
 #define PRESSED_MIN_MS 30
 #define PRESSED_LONG_MIN_MS 1000
 #define NOT_PRESSED_MIN_MS 200
-#define BETWEEN_MULTI_PRESS_MAX_MS 900
+#define BETWEEN_MULTI_PRESS_MAX_MS 400
 
 Button::Button(uint8_t pin, bool polarity_high)
 {
