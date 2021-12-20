@@ -61,11 +61,6 @@ void Button::update()
             _press_count++;
             _Tmr.reset();
             _state = SHORT_PRESS;
-            if (_press_count == 1)
-            {
-                _state_to_give = BUTTON_SHORT_PRESS;
-                _is_new_state = true;
-            }
         }
         else if (_Tmr.get_ms() > PRESSED_LONG_MIN_MS)
         {
@@ -83,7 +78,12 @@ void Button::update()
         }
         else if (_Tmr.get_ms() > BETWEEN_MULTI_PRESS_MAX_MS)
         {
-            if (_press_count == 2)
+            if (_press_count == 1)
+            {
+                _state_to_give = BUTTON_SHORT_PRESS;
+                _is_new_state = true;
+            }
+            else if (_press_count == 2)
             {
                 _state_to_give = BUTTON_DOUPLE_PRESS;
                 _is_new_state = true;
