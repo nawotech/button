@@ -96,6 +96,9 @@ void test_multi_press()
     // multi press enabled
     TestButton.set_multi_press_enabled(true);
 
+    TestButton.update();
+    TEST_ASSERT_EQUAL(BUTTON_NONE, TestButton.get_state());
+
     // short press
     simulate_button_press(&TestButton, 1, PRESS_LONG_ENOUGH_MS);
     simulate_button_press(&TestButton, 0, MULTI_PRESS_RELEASE_LONG_ENOUGH_MS);
@@ -124,6 +127,22 @@ void test_multi_press()
     TEST_ASSERT_EQUAL(BUTTON_TRIPLE_PRESS, TestButton.get_state());
 }
 
+void test_multi_press_change()
+{
+    Button TestButton(3, true);
+
+    simulate_button_press(&TestButton, 1, PRESS_LONG_ENOUGH_MS);
+    When(Method(ArduinoFake(), digitalRead).Using(3)).AlwaysReturn(0);
+    TestButton.update();
+    TEST_ASSERT_EQUAL(BUTTON_SHORT_PRESS, TestButton.get_state());
+
+    // multi press enabled, make sure the short press is not registered again
+    TestButton.set_multi_press_enabled(true);
+
+    simulate_button_press(&TestButton, 0, MULTI_PRESS_RELEASE_LONG_ENOUGH_MS);
+    TEST_ASSERT_EQUAL(BUTTON_NONE, TestButton.get_state());
+}
+
 int main(int argc, char **argv)
 {
     // test_long_hold();
@@ -134,6 +153,7 @@ int main(int argc, char **argv)
     RUN_TEST(test_short_press);
     RUN_TEST(test_long_hold);
     RUN_TEST(test_multi_press);
+    RUN_TEST(test_multi_press_change);
 
     UNITY_END();
 

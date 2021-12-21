@@ -140,5 +140,8 @@ button_state_t Button::get_state()
 
 void Button::set_multi_press_enabled(bool enabled)
 {
+    _state = NOT_PRESSED;
+    _state_to_give = BUTTON_NONE;
+    _is_new_state = false;
     _multi_press_enabled = enabled;
 }

@@ -44,3 +44,42 @@ void loop()
   }
 }
 ```
+
+## Enabling Multi-press
+
+If desired, this library can also detect between single, double, and triple press. By enabling this, there will be a lag of 400ms added from pressing the button until the library shows a press. This is to allow it to distinguish between a number of presses.
+
+```c++
+void setup()
+{
+  MyButton.begin();
+  MyButton.set_multi_press_enabled(true);
+}
+
+void loop()
+{
+  MyButton.update();
+  
+  button_state_t button_state = MyButton.get_state();
+  if (button_state == BUTTON_SHORT_PRESS)
+  {
+    Serial.println("Short press");
+  }
+  else if (button_state == BUTTON_LONG_HOLD_START)
+  {
+    Serial.println("Long hold start");
+  }
+  else if (button_state == BUTTON_LONG_HOLD_END)
+  {
+    Serial.println("Long hold end");
+  }
+  else if (button_state == BUTTON_DOUBLE_PRESS)
+  {
+    Serial.println("Double press");
+  }
+  else if (button_state == BUTTON_TRIPLE_PRESS)
+  {
+    Serial.println("Triple press");
+  }
+}
+```
