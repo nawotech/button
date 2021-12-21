@@ -17,11 +17,12 @@ enum button_state_t
 class Button
 {
 public:
-    Button(uint8_t pin, bool polarity_high = false);
+    Button(uint8_t pin, bool polarity_high = false, bool multi_press_enabled = false);
     void begin();
     void update();
     button_state_t get_state();
     bool is_pressed();
+    void set_multi_press_enabled(bool enabled);
     Timer _Tmr;
 
 private:
@@ -41,6 +42,7 @@ private:
     button_state_t _state_to_give = BUTTON_NONE;
     bool _is_new_state = false;
     uint8_t _press_count = 0;
+    bool _multi_press_enabled = false;
 };
 
 #endif

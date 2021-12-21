@@ -3,13 +3,14 @@
 
 #define PRESSED_MIN_MS 30
 #define PRESSED_LONG_MIN_MS 1000
-#define NOT_PRESSED_MIN_MS 200
+#define NOT_PRESSED_MIN_MS 100
 #define BETWEEN_MULTI_PRESS_MAX_MS 400
 
-Button::Button(uint8_t pin, bool polarity_high)
+Button::Button(uint8_t pin, bool polarity_high, bool multi_press_enabled)
 {
     _pin = pin;
     _pol = polarity_high;
+    _multi_press_enabled = multi_press_enabled;
 }
 
 void Button::begin()
@@ -61,6 +62,11 @@ void Button::update()
             _press_count++;
             _Tmr.reset();
             _state = SHORT_PRESS;
+            if (_press_count == 1 && !_multi_press_enabled)
+            {
+                _state_to_give = BUTTON_SHORT_PRESS;
+                _is_new_state = true;
+            }
         }
         else if (_Tmr.get_ms() > PRESSED_LONG_MIN_MS)
         {
@@ -76,14 +82,14 @@ void Button::update()
             _Tmr.reset();
             _state = PRESS_START;
         }
-        else if (_Tmr.get_ms() > BETWEEN_MULTI_PRESS_MAX_MS)
+        else if (_Tmr.get_ms() > BETWEEN_MULTI_PRESS_MAX_MS && _multi_press_enabled)
         {
             if (_press_count == 1)
             {
                 _state_to_give = BUTTON_SHORT_PRESS;
                 _is_new_state = true;
             }
-            else if (_press_count == 2)
+            if (_press_count == 2)
             {
                 _state_to_give = BUTTON_DOUPLE_PRESS;
                 _is_new_state = true;
@@ -93,6 +99,10 @@ void Button::update()
                 _state_to_give = BUTTON_TRIPLE_PRESS;
                 _is_new_state = true;
             }
+            _state = NOT_PRESSED;
+        }
+        else if (_Tmr.get_ms() > NOT_PRESSED_MIN_MS && !_multi_press_enabled)
+        {
             _state = NOT_PRESSED;
         }
         break;
@@ -126,4 +136,9 @@ button_state_t Button::get_state()
     _state_to_give = BUTTON_NONE;
     _is_new_state = false;
     return state_ret;
+}
+
+void Button::set_multi_press_enabled(bool enabled)
+{
+    _multi_press_enabled = enabled;
 }
